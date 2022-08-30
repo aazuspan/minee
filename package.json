@@ -1,0 +1,35 @@
+{
+  "name": "minee",
+  "version": "0.0.1",
+  "description": "Earth Engine module bundler.",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "minee": "./src/cli.js"
+  },
+  "scripts": {
+    "lint": "eslint src --fix",
+    "test": "ava",
+    "start": "node ./src/index.js"
+  },
+  "exports": "./src/index.js",
+  "author": "Aaron Zuspan",
+  "license": "ISC",
+  "devDependencies": {
+    "ava": "^4.3.1",
+    "eslint": "^8.21.0",
+    "eslint-config-google": "^0.14.0",
+    "mock-fs": "^5.1.4"
+  },
+  "dependencies": {
+    "memfs": "^3.4.7",
+    "isomorphic-git": "^1.19.1",
+    "@babel/core": "^7.18.10",
+    "@babel/parser": "^7.18.11",
+    "babel-minify": "^0.5.2",
+    "@slimio/async-cli-spinner": "^0.5.2",
+    "chalk": "^5.0.1",
+    "commander": "^9.4.0",
+    "terminal-tree": "^0.0.3"
+  }
+}
