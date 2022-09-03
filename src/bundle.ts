@@ -60,7 +60,7 @@ Bundled by minee (${new Date().toISOString()}).*/\n\n`
  * with information about the source and license for the bundled modules.
  * @return {Promise<Bundle>} A promise that resolves to a Bundle object containing the bundled code.
  */
-export default async function bundleModule (
+async function bundleModule (
   entry: string,
   dest?: string,
   { noHeader = false } = {}
@@ -142,3 +142,6 @@ class Bundle {
     return (1 - bundledBytes / totalBytes) * 100
   }
 }
+
+export type { Bundle }
+export { bundleModule }

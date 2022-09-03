@@ -1,7 +1,27 @@
 {
   "name": "minee",
   "version": "0.0.1",
+  "homepage": "https://github.com/aazuspan/minee",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aazuspan/minee"
+  },
+  "bugs": {
+    "url": "https://github.com/aazuspan/minee/issues"
+  },
+  "author": {
+    "name": "Aaron Zuspan",
+    "email": "aa.zuspan@gmail.com"
+  },
   "description": "Earth Engine module bundler.",
+  "keywords": [
+    "cli",
+    "earth-engine",
+    "module",
+    "bundler",
+    "minifier"
+  ],
+  "license": "MIT",
   "main": "dist/index.js",
   "type": "module",
   "bin": {
@@ -13,8 +33,6 @@
     "start": "tsc && node dist/cli.js"
   },
   "exports": "./dist/index.js",
-  "author": "Aaron Zuspan",
-  "license": "MIT",
   "devDependencies": {
     "@babel/types": "^7.18.13",
     "@types/babel__traverse": "^7.18.1",

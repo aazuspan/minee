@@ -112,7 +112,7 @@ class Module {
           return loadModule(p, { loadDependencies: false })
         })
     )
-    await Promise.all(dependencies.map((s) => s.loadDependencies(loaded)))
+    await Promise.all(dependencies.map(async (s) => await s.loadDependencies(loaded)))
     this.dependencies = dependencies
 
     return dependencies

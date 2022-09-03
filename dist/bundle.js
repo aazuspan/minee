@@ -42,7 +42,7 @@ ${licenseFound ? licenseList : ''}
 Bundled by minee (${new Date().toISOString()}).*/\n\n`;
     return header;
 };
-export default function bundleModule(entry, dest, { noHeader = false } = {}) {
+function bundleModule(entry, dest, { noHeader = false } = {}) {
     return __awaiter(this, void 0, void 0, function* () {
         const entryModule = yield loadModule(entry);
         if (dest === undefined) {
@@ -99,3 +99,4 @@ class Bundle {
         return (1 - bundledBytes / totalBytes) * 100;
     }
 }
+export { bundleModule };

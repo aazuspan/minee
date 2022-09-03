@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import tree from 'terminal-tree'
 import { Command } from 'commander'
 import * as errors from './errors.js'
-import bundleModule from './bundle.js'
+import { bundleModule } from './bundle.js'
 
 new Command()
   .name('minee')

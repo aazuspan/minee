@@ -92,7 +92,7 @@ class Module {
                 }
                 return loadModule(p, { loadDependencies: false });
             }));
-            yield Promise.all(dependencies.map((s) => s.loadDependencies(loaded)));
+            yield Promise.all(dependencies.map((s) => __awaiter(this, void 0, void 0, function* () { return yield s.loadDependencies(loaded); })));
             this.dependencies = dependencies;
             return dependencies;
         });

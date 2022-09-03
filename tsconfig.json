@@ -2,7 +2,7 @@
     "compilerOptions": {
         "outDir": "./dist",
         "target": "es6",
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
         "allowJs": false,
         "strict": true,
         "alwaysStrict": true,
@@ -11,9 +11,16 @@
         "skipLibCheck": true,
         "allowSyntheticDefaultImports": true,
         "removeComments": true,
+        "forceConsistentCasingInFileNames": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "esModuleInterop": true
     },
     "include": [
-        "./src/**/*",
+        "./src/*",
         "./index.d.ts"
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }

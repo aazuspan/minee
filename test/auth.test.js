@@ -1,6 +1,6 @@
 import test from "ava";
 import mock from "mock-fs";
-import * as utils from "../dist/utils.js";
+import * as auth from "../dist/auth.js";
 import * as errors from "../dist/errors.js";
 
 const MOCK_COOKIE_DIR = "testfiles";
@@ -18,7 +18,7 @@ test("throws if credentials missing", (t) => {
     [MOCK_COOKIE_DIR]: {},
   });
 
-  t.throws(() => utils.loadGitCredentials(), {
+  t.throws(() => auth.loadGitCredentials(), {
     instanceOf: errors.MissingCredentialsError,
   });
 });
@@ -28,7 +28,7 @@ test("throws if credentials invalid", (t) => {
     [MOCK_COOKIE_DIR]: { ".gitcookies": "invalid credentials" },
   });
 
-  t.throws(() => utils.loadGitCredentials(MOCK_COOKIE_DIR), {
+  t.throws(() => auth.loadGitCredentials(MOCK_COOKIE_DIR), {
     instanceOf: errors.InvalidCredentialsError,
   });
 });
@@ -38,5 +38,5 @@ test("gets valid credentials", (t) => {
     [MOCK_COOKIE_DIR]: { ".gitcookies": MOCK_COOKIE },
   });
 
-  t.is(utils.loadGitCredentials(MOCK_COOKIE_DIR), MOCK_KEY);
+  t.is(auth.loadGitCredentials(MOCK_COOKIE_DIR), MOCK_KEY);
 });
