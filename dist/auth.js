@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import * as errors from './errors.js';
 export const loadGitCredentials = (dir = os.homedir()) => {
     const cookiePath = path.join(dir, '.gitcookies');

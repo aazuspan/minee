@@ -11,12 +11,8 @@ new Command()
   .version('0.0.1')
   .description('📦 Earth Engine module bundler.')
   .arguments('<entry>')
-  .option('-d, --dest <path>', 'The local file path to write the bundled file.')
-  .option(
-    '--no-header',
-    'Drop header information from the bundled file.',
-    true
-  )
+  .option('-d --dest <path>', 'The local file path to write the bundled file.')
+  .option('--no-header', 'Drop header information from the bundled file.')
   .action(async (entry: string, options: { dest: string, header: boolean }) => {
     await runBundler(entry, options.dest, !options.header)
   })
@@ -36,15 +32,15 @@ async function runBundler (
 ): Promise<void> {
   try {
     const bundled = await bundleModule(entry, dest, { noHeader })
-    const moduleTree = tree(bundled.entry.dependencyTree(), {
+    const moduleTree = tree(bundled.entry.dependencyTree({ pretty: false }), {
       symbol: false,
       highlight: false,
       padding: 4
     }) as string
-    const compressed = bundled.compressionPercent()
+    const compressedPct = bundled.compressionPercent()
 
-    const fileSizeOperator = compressed > 0 ? '-' : '+'
-    const fileSizeColor = compressed > 0 ? chalk.green.bold : chalk.red.bold
+    const fileSizeOperator = compressedPct > 0 ? '-' : '+'
+    const fileSizeColor = compressedPct > 0 ? chalk.green.bold : chalk.red.bold
     const fileNumberOperator = bundled.modules.length > 1 ? '-' : ''
     const fileNumberColor =
       bundled.modules.length > 1 ? chalk.green.bold : chalk.white.bold
@@ -55,7 +51,7 @@ Dependency Graph
 ${moduleTree}
 
 File size: ${fileSizeColor(
-      `${fileSizeOperator}${Math.abs(compressed).toFixed(1)}%`
+      `${fileSizeOperator}${Math.abs(compressedPct).toFixed(1)}%`
     )}
 Total imports: ${fileNumberColor(
       `${fileNumberOperator}${((1 - 1 / bundled.modules.length) * 100).toFixed(

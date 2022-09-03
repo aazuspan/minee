@@ -1,7 +1,7 @@
-import * as fs from 'fs'
-import babelMinify from 'babel-minify'
+import fs from 'fs'
 import path from 'path'
 import tree from 'terminal-tree'
+import { transformSync } from 'esbuild'
 
 import { loadModule, Module, DependencyTree } from './module.js'
 
@@ -70,7 +70,7 @@ export default async function bundleModule (
     dest = path.resolve(`${entryModule.name}.bundled.js`)
   }
 
-  const modules = [entryModule, ...(await entryModule.listDependencies())]
+  const modules = [entryModule, ...entryModule.listDependencies()]
   const wrapped = modules.map((module) => wrapModule(module))
   const header = noHeader ? '' : buildHeader(entryModule, modules)
 
@@ -98,7 +98,10 @@ export default async function bundleModule (
       exports = loads(modules, "${entry}");
   `
 
-  const minified = babelMinify(result).code as string
+  const minified = transformSync(result, {
+    minify: true,
+    target: 'es5'
+  }).code
   const output = `${header}${minified}`
 
   fs.writeFileSync(dest, output)

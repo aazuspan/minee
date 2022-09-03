@@ -1,9 +1,8 @@
 import { join } from 'path'
 import { fs as memfs } from 'memfs'
-import { traverse } from '@babel/core'
+import { traverse, parseSync } from '@babel/core'
 import { NodePath } from '@babel/traverse'
-import { CallExpression } from '@babel/types'
-import * as parser from '@babel/parser'
+import { CallExpression, Comment } from '@babel/types'
 import git from 'isomorphic-git'
 import http from 'isomorphic-git/http/node/index.js'
 import Spinner from '@slimio/async-cli-spinner'
@@ -20,7 +19,7 @@ class Module {
   code: string
   stats: { size: number }
   commit: string
-  ast: ReturnType<typeof parser.parse>
+  ast: ReturnType<typeof parseSync>
   license: string
   name: string
   dependencies: undefined | Module[]
@@ -28,15 +27,15 @@ class Module {
     path: string,
     repository: Repository,
     code: string,
-    stats: any,
-    commit: any
+    stats: { size: number },
+    commit: string
   ) {
     this.path = path
     this.repository = repository
     this.code = code
     this.stats = stats
     this.commit = commit
-    this.ast = parser.parse(code)
+    this.ast = parseSync(code)
     this.license = this.parseLicense()
     this.name = path.split(':')[1].split('/').pop() as string
     this.dependencies = undefined
@@ -113,7 +112,7 @@ class Module {
           return loadModule(p, { loadDependencies: false })
         })
     )
-    await Promise.all(dependencies.map(async (s) => await s.loadDependencies(loaded)))
+    await Promise.all(dependencies.map((s) => s.loadDependencies(loaded)))
     this.dependencies = dependencies
 
     return dependencies
@@ -122,18 +121,22 @@ class Module {
   /**
    * Build a dependency tree from all downstream modules.
    *
+   * @param {object} options
+   * @param {boolean} [options.pretty=false] - If true, colors are included in the dependency tree for terminal output.
    * @returns {DependencyTree} The dependency tree of all modules required through this module/
    */
-  dependencyTree (): DependencyTree {
+  dependencyTree ({ pretty = false } = {}): DependencyTree {
     if (this.dependencies === undefined) {
       throw new Error(
         'This module has unloaded dependencies. Rebuild the module with `loadDependencies=true`.'
       )
     }
 
-    const key = `${this.path} (#${this.commit})`
+    const path = pretty ? chalk.cyan(this.path) : this.path
+    const hash = pretty ? chalk.dim(`(#${this.commit.slice(0, 7)})`) : `(#${this.commit.slice(0, 7)})`
+    const key = path + ' ' + hash
     if (this.dependencies.length === 0) return key
-    const children = this.dependencies.map((s) => s.dependencyTree())
+    const children = this.dependencies.map((s) => s.dependencyTree({ pretty }))
     return { [key]: children }
   }
 
@@ -175,8 +178,8 @@ class Module {
     }
 
     return comments
-      .filter((c) => c.type === 'CommentBlock' && c.value.includes('@license'))
-      .map((c) => c.value)
+      .filter((c: Comment) => c.type === 'CommentBlock' && c.value.includes('@license'))
+      .map((c: Comment) => c.value)
       .join('\n\n')
   }
 }
@@ -283,8 +286,7 @@ async function loadModule (
       depth: 1,
       ref: 'master'
     })
-    // Grab the short hash
-    commit = commits[0].oid.slice(0, 7)
+    commit = commits[0].oid
   } catch (err) {
     commit = 'Unknown'
   }
@@ -294,7 +296,7 @@ async function loadModule (
   if (loadDependencies) {
     await module.loadDependencies()
     if (!allowCircular) {
-      await module.checkForCircularImports()
+      module.checkForCircularImports()
     }
   }
 

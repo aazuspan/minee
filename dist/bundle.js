@@ -7,10 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import * as fs from 'fs';
-import babelMinify from 'babel-minify';
+import fs from 'fs';
 import path from 'path';
 import tree from 'terminal-tree';
+import { transformSync } from 'esbuild';
 import { loadModule } from './module.js';
 const wrapModule = (module) => {
     const wrapped = `"${module.path}":
@@ -48,7 +48,7 @@ export default function bundleModule(entry, dest, { noHeader = false } = {}) {
         if (dest === undefined) {
             dest = path.resolve(`${entryModule.name}.bundled.js`);
         }
-        const modules = [entryModule, ...(yield entryModule.listDependencies())];
+        const modules = [entryModule, ...entryModule.listDependencies()];
         const wrapped = modules.map((module) => wrapModule(module));
         const header = noHeader ? '' : buildHeader(entryModule, modules);
         const result = `
@@ -74,7 +74,10 @@ export default function bundleModule(entry, dest, { noHeader = false } = {}) {
 
       exports = loads(modules, "${entry}");
   `;
-        const minified = babelMinify(result).code;
+        const minified = transformSync(result, {
+            minify: true,
+            target: 'es5'
+        }).code;
         const output = `${header}${minified}`;
         fs.writeFileSync(dest, output);
         return new Bundle(output, entryModule, modules, dest);

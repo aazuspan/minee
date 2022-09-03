@@ -9,8 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { join } from 'path';
 import { fs as memfs } from 'memfs';
-import { traverse } from '@babel/core';
-import * as parser from '@babel/parser';
+import { traverse, parseSync } from '@babel/core';
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node/index.js';
 import Spinner from '@slimio/async-cli-spinner';
@@ -50,7 +49,7 @@ class Module {
         this.code = code;
         this.stats = stats;
         this.commit = commit;
-        this.ast = parser.parse(code);
+        this.ast = parseSync(code);
         this.license = this.parseLicense();
         this.name = path.split(':')[1].split('/').pop();
         this.dependencies = undefined;
@@ -93,19 +92,21 @@ class Module {
                 }
                 return loadModule(p, { loadDependencies: false });
             }));
-            yield Promise.all(dependencies.map((s) => __awaiter(this, void 0, void 0, function* () { return yield s.loadDependencies(loaded); })));
+            yield Promise.all(dependencies.map((s) => s.loadDependencies(loaded)));
             this.dependencies = dependencies;
             return dependencies;
         });
     }
-    dependencyTree() {
+    dependencyTree({ pretty = false } = {}) {
         if (this.dependencies === undefined) {
             throw new Error('This module has unloaded dependencies. Rebuild the module with `loadDependencies=true`.');
         }
-        const key = `${this.path} (#${this.commit})`;
+        const path = pretty ? chalk.cyan(this.path) : this.path;
+        const hash = pretty ? chalk.dim(`(#${this.commit.slice(0, 7)})`) : `(#${this.commit.slice(0, 7)})`;
+        const key = path + ' ' + hash;
         if (this.dependencies.length === 0)
             return key;
-        const children = this.dependencies.map((s) => s.dependencyTree());
+        const children = this.dependencies.map((s) => s.dependencyTree({ pretty }));
         return { [key]: children };
     }
 }
@@ -176,7 +177,7 @@ function loadModule(entry, { showProgress = true, loadDependencies = true, allow
                 depth: 1,
                 ref: 'master'
             });
-            commit = commits[0].oid.slice(0, 7);
+            commit = commits[0].oid;
         }
         catch (err) {
             commit = 'Unknown';
@@ -185,7 +186,7 @@ function loadModule(entry, { showProgress = true, loadDependencies = true, allow
         if (loadDependencies) {
             yield module.loadDependencies();
             if (!allowCircular) {
-                yield module.checkForCircularImports();
+                module.checkForCircularImports();
             }
         }
         return module;
