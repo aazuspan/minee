@@ -2,34 +2,43 @@
   "name": "minee",
   "version": "0.0.1",
   "description": "Earth Engine module bundler.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "minee": "./src/cli.js"
+    "minee": "dist/cli.js"
   },
   "scripts": {
     "lint": "eslint src --fix",
-    "test": "ava",
-    "start": "node ./src/index.js"
+    "test": "tsc && ava",
+    "start": "tsc && node dist/cli.js"
   },
   "exports": "./src/index.js",
   "author": "Aaron Zuspan",
   "license": "ISC",
   "devDependencies": {
+    "@babel/types": "^7.18.13",
+    "@types/babel__traverse": "^7.18.1",
+    "@types/node": "^18.7.14",
+    "@typescript-eslint/eslint-plugin": "^5.36.0",
     "ava": "^4.3.1",
-    "eslint": "^8.21.0",
-    "eslint-config-google": "^0.14.0",
-    "mock-fs": "^5.1.4"
+    "eslint": "^8.23.0",
+    "eslint-config-standard-with-typescript": "^22.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.5",
+    "eslint-plugin-promise": "^6.0.1",
+    "mock-fs": "^5.1.4",
+    "typescript": "^4.8.2"
   },
   "dependencies": {
-    "memfs": "^3.4.7",
-    "isomorphic-git": "^1.19.1",
     "@babel/core": "^7.18.10",
     "@babel/parser": "^7.18.11",
-    "babel-minify": "^0.5.2",
+    "@babel/traverse": "^7.18.13",
     "@slimio/async-cli-spinner": "^0.5.2",
+    "babel-minify": "^0.5.2",
     "chalk": "^5.0.1",
     "commander": "^9.4.0",
+    "isomorphic-git": "^1.19.1",
+    "memfs": "^3.4.7",
     "terminal-tree": "^0.0.3"
   }
 }
