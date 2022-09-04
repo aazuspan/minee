@@ -40,3 +40,21 @@ test("gets valid credentials", (t) => {
 
   t.is(auth.loadGitCredentials(MOCK_COOKIE_DIR), MOCK_KEY);
 });
+
+/**
+ * If you run the Google authentication process multiple times, new keys get concatenated
+ * to the end and old keys get deactivated. This test makes sure we always get the most
+ * recent key.
+ */
+test("gets valid credentials when multiple exist", (t) => {
+  const keys = [
+    `earthengine.googlesource.com	FALSE	/	TRUE	1654654321	o	git-${MOCK_EMAIL}.gmail.com=${MOCK_KEY.toUpperCase()}`,
+    `earthengine.googlesource.com	FALSE	/	TRUE	1654654321	o	git-${MOCK_EMAIL}.gmail.com=${MOCK_KEY.toLowerCase()}`,
+    `earthengine.googlesource.com	FALSE	/	TRUE	1654654321	o	git-${MOCK_EMAIL}.gmail.com=${MOCK_KEY}`
+  ];
+  mock({
+    [MOCK_COOKIE_DIR]: { ".gitcookies": keys.join("\n") },
+  });
+
+  t.is(auth.loadGitCredentials(MOCK_COOKIE_DIR), MOCK_KEY);
+});

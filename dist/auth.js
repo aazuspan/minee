@@ -8,8 +8,11 @@ export const loadGitCredentials = (dir = os.homedir()) => {
         throw new errors.MissingCredentialsError(`No credentials found at ${cookiePath}.`);
     }
     try {
-        const data = fs.readFileSync(cookiePath, 'utf8');
-        return data.split('=')[1].replace('\n', '');
+        const lines = fs.readFileSync(cookiePath, 'utf8').split("\n");
+        const credentials = lines.filter((line) => line.startsWith("earthengine.googlesource.com"));
+        const lastCredential = credentials[credentials.length - 1];
+        const password = lastCredential.split("=")[1];
+        return password;
     }
     catch (err) {
         if (err instanceof TypeError) {
