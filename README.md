@@ -1,12 +1,29 @@
 # minee 📦
 
-A bundler for Earth Engine modules.
-
 ![Terminal demo](./assets/minee_demo.gif)
 
-## What Is It?
+`minee` is a module bundler for Earth Engine. It takes a module that may contain multiple imported scripts and bundles them into a single compact file for users to import. 
 
-`minee` is a module bundler for Earth Engine. It takes an Earth Engine module that may contain multiple imported scripts and bundles them into a single compact file for users to import. Experimentally, bundling can reduce file sizes and import times by [up to about 80%](#example-results).
+The diagrams below illustrate the concept with an example module, [geeSharp](https://github.com/aazuspan/geeSharp.js). Before bundling, a user requires the entry module `geeSharp` which requires a network of dependencies. Each `require` call takes time to resolve, leading to slow imports. After bundling, a user imports a single entry file that was pre-bundled by `minee`, reducing file size and import time by [about 70%](#example-results).
+```mermaid
+graph TD
+    subgraph s2[After Bundling]
+    u2{User}--->|requires|entry2
+    geeSharp-.->m[(minee)];
+    sharpeners2[src/sharpeners.js]-.->m;
+    metrics2[src/metrics.js]-.->m;
+    utils2[src/utils.js]-.->m;
+    m--->|Bundle and minify|entry2(geeSharp);
+    end
+
+    subgraph s1[Before Bundling]
+    u1{User}-->|requires|entry1(geeSharp)
+    entry1-->|requires|sharpeners1[src/sharpeners.js];
+    entry1-->|requires|metrics1[src/metrics.js];
+    sharpeners1-->|requires|utils1[src/utils.js];
+    metrics1-->|requires|utils1;
+    end
+```
 
 ## Setup
 
@@ -20,7 +37,7 @@ npm install -g minee
 
 ### Authentication
 
-If you haven't accessed an Earth Engine repository using `git` from your computer before, you'll need to authenticate first by going to https://earthengine.googlesource.com/new-password and following the instructions. This will store credentials on your computer that allows `minee` to grab and bundle repositories.
+If you haven't accessed an Earth Engine repository using `git` from your computer before, you'll need to authenticate first by going to https://earthengine.googlesource.com/new-password and following the instructions. This will store credentials on your computer at `~/.gitcookies` that allows `minee` to grab and bundle repositories.
 
 ## Usage
 
