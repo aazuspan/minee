@@ -15,7 +15,7 @@ import * as errors from './errors.js';
 import { bundleModule } from './bundle.js';
 new Command()
     .name('minee')
-    .version('0.0.1')
+    .version('0.0.2')
     .description('📦 Earth Engine module bundler.')
     .arguments('<entry>')
     .option('-d --dest <path>', 'The local file path to write the bundled file.')
