@@ -1,5 +1,7 @@
 # minee 📦
 
+[![npm version](https://badge.fury.io/js/minee.svg)](https://badge.fury.io/js/minee)
+
 `minee` is a module bundler for Earth Engine. It takes a module that may contain multiple imported scripts and bundles them into a single compact file for users to import. 
 
 ![Terminal demo](./assets/minee_demo.gif)
