@@ -7,11 +7,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import fs from 'fs';
-import path from 'path';
-import tree from 'terminal-tree';
-import { transformSync } from 'esbuild';
-import { loadModule } from './module.js';
+import fs from "fs";
+import tree from "terminal-tree";
+import { transformSync } from "esbuild";
+import { loadModule } from "./module.js";
 const wrapModule = (module) => {
     const wrapped = `"${module.path}":
     function (exports, require) {
@@ -23,9 +22,9 @@ const wrapModule = (module) => {
 };
 const buildHeader = (entry, modules) => {
     const moduleTree = tree(entry.dependencyTree(), {
-        symbol: false
+        symbol: false,
     });
-    let licenseList = 'Licenses\n---------\n';
+    let licenseList = "Licenses\n---------\n";
     let licenseFound = false;
     modules.forEach((m) => {
         if (m.license.length === 0)
@@ -38,22 +37,19 @@ const buildHeader = (entry, modules) => {
 Dependencies
 ------------
 ${moduleTree}
-${licenseFound ? licenseList : ''}
+${licenseFound ? licenseList : ""}
 Bundled by minee (${new Date().toISOString()}).*/\n\n`;
     return header;
 };
-function bundleModule(entry, dest, { noHeader = false } = {}) {
+function bundleModule(entry, { noHeader = false } = {}) {
     return __awaiter(this, void 0, void 0, function* () {
         const entryModule = yield loadModule(entry);
-        if (dest === undefined) {
-            dest = path.resolve(`${entryModule.name}.bundled.js`);
-        }
         const modules = [entryModule, ...entryModule.listDependencies()];
         const wrapped = modules.map((module) => wrapModule(module));
-        const header = noHeader ? '' : buildHeader(entryModule, modules);
+        const header = noHeader ? "" : buildHeader(entryModule, modules);
         const result = `
     var modules = {
-        ${wrapped.join('\n')}
+        ${wrapped.join("\n")}
     };
 
     function loads(modules, entry) {
@@ -76,27 +72,31 @@ function bundleModule(entry, dest, { noHeader = false } = {}) {
   `;
         const minified = transformSync(result, {
             minify: true,
-            target: 'es5'
+            target: "es5",
         }).code;
         const output = `${header}${minified}`;
-        fs.writeFileSync(dest, output);
-        return new Bundle(output, entryModule, modules, dest);
+        return new Bundle(output, entryModule, modules);
     });
 }
 class Bundle {
-    constructor(code, entry, modules, dest) {
+    constructor(code, entry, modules) {
         this.code = code;
         this.entry = entry;
         this.modules = modules;
-        this.dest = dest;
         this.dependencyTree = this.entry.dependencyTree();
     }
     compressionPercent() {
         const totalBytes = this.modules
             .map((m) => m.stats.size)
             .reduce((a, b) => a + Number(b), 0);
-        const bundledBytes = fs.statSync(this.dest).size;
+        const bundledBytes = this.code.length;
         return (1 - bundledBytes / totalBytes) * 100;
+    }
+    write(dest, overwrite = false) {
+        if (fs.existsSync(dest) && !overwrite) {
+            throw new Error(`File already exists: ${dest}. Set 'overwrite=true' or choose a different destination path.`);
+        }
+        fs.writeFileSync(dest, this.code);
     }
 }
 export { bundleModule };
