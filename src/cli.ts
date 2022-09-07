@@ -3,6 +3,7 @@
 import chalk from 'chalk'
 import tree from 'terminal-tree'
 import { Command } from 'commander'
+import path from 'path'
 import * as errors from './errors.js'
 import { bundleModule } from './bundle.js'
 
@@ -21,7 +22,8 @@ new Command()
 /**
  * Run bundling on an Earth Engine module, writing the results to a local file.
  * @param {string} entry - The path to the module entry point, e.g. users/username/repository:module.
- * @param {string} dest - The local file path to write the bundled module.
+ * @param {string} dest - The local file path to write the bundled module. If none is given, the file
+ * will be written to ./<entry>.bundled.js.
  * @param {boolean} [noHeader=false] - If false, a header will be included in the bundled file
  * with information about the source and license for the bundled modules.
  */
@@ -31,13 +33,17 @@ async function runBundler (
   noHeader = false
 ): Promise<void> {
   try {
-    const bundled = await bundleModule(entry, dest, { noHeader })
+    const bundled = await bundleModule(entry, { noHeader })
+    if (dest === undefined) {
+      dest = path.resolve(`${bundled.entry.name}.bundled.js`)
+    }
     const moduleTree = tree(bundled.entry.dependencyTree({ pretty: false }), {
       symbol: false,
       highlight: false,
       padding: 4
     }) as string
     const compressedPct = bundled.compressionPercent()
+    bundled.write(dest, true)
 
     const fileSizeOperator = compressedPct > 0 ? '-' : '+'
     const fileSizeColor = compressedPct > 0 ? chalk.green.bold : chalk.red.bold
@@ -58,7 +64,7 @@ Total imports: ${fileNumberColor(
         1
       )}%`
     )}
-📦 Bundle saved to ${chalk.yellow.bold(bundled.dest)}!
+📦 Bundle saved to ${chalk.yellow.bold(dest)}!
     `)
   } catch (err) {
     if (

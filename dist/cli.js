@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import chalk from 'chalk';
 import tree from 'terminal-tree';
 import { Command } from 'commander';
+import path from "path";
 import * as errors from './errors.js';
 import { bundleModule } from './bundle.js';
 new Command()
@@ -27,13 +28,17 @@ new Command()
 function runBundler(entry, dest, noHeader = false) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const bundled = yield bundleModule(entry, dest, { noHeader });
+            const bundled = yield bundleModule(entry, { noHeader });
+            if (dest === undefined) {
+                dest = path.resolve(`${bundled.entry.name}.bundled.js`);
+            }
             const moduleTree = tree(bundled.entry.dependencyTree({ pretty: false }), {
                 symbol: false,
                 highlight: false,
                 padding: 4
             });
             const compressedPct = bundled.compressionPercent();
+            bundled.write(dest, true);
             const fileSizeOperator = compressedPct > 0 ? '-' : '+';
             const fileSizeColor = compressedPct > 0 ? chalk.green.bold : chalk.red.bold;
             const fileNumberOperator = bundled.modules.length > 1 ? '-' : '';
@@ -45,7 +50,7 @@ ${moduleTree}
 
 File size: ${fileSizeColor(`${fileSizeOperator}${Math.abs(compressedPct).toFixed(1)}%`)}
 Total imports: ${fileNumberColor(`${fileNumberOperator}${((1 - 1 / bundled.modules.length) * 100).toFixed(1)}%`)}
-📦 Bundle saved to ${chalk.yellow.bold(bundled.dest)}!
+📦 Bundle saved to ${chalk.yellow.bold(dest)}!
     `);
         }
         catch (err) {

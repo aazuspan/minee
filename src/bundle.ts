@@ -1,5 +1,4 @@
 import fs from 'fs'
-import path from 'path'
 import tree from 'terminal-tree'
 import { transformSync } from 'esbuild'
 
@@ -53,8 +52,6 @@ Bundled by minee (${new Date().toISOString()}).*/\n\n`
 /**
  * Bundle a module into a single file.
  * @param {string} entry - The path to the module entry point, e.g. "users/username/module:script".
- * @param {string} [dest] - The file path to write the bundled module. If none is given, the file is
- * written to "<entry>.bundled.js"
  * @param {object} [options]
  * @param {boolean} [options.noHeader=false] - If false, a header will be included in the bundled file
  * with information about the source and license for the bundled modules.
@@ -62,14 +59,9 @@ Bundled by minee (${new Date().toISOString()}).*/\n\n`
  */
 async function bundleModule (
   entry: string,
-  dest?: string,
   { noHeader = false } = {}
 ): Promise<Bundle> {
   const entryModule = await loadModule(entry)
-  if (dest === undefined) {
-    dest = path.resolve(`${entryModule.name}.bundled.js`)
-  }
-
   const modules = [entryModule, ...entryModule.listDependencies()]
   const wrapped = modules.map((module) => wrapModule(module))
   const header = noHeader ? '' : buildHeader(entryModule, modules)
@@ -104,9 +96,7 @@ async function bundleModule (
   }).code
   const output = `${header}${minified}`
 
-  fs.writeFileSync(dest, output)
-
-  return new Bundle(output, entryModule, modules, dest)
+  return new Bundle(output, entryModule, modules)
 }
 
 /** Represents a bundled module. */
@@ -114,19 +104,16 @@ class Bundle {
   code: string
   entry: Module
   modules: Module[]
-  dest: string
   dependencyTree: DependencyTree
   /**
    * @param {string} code - The bundled source code.
    * @param {Module} entry - The entry point module.
    * @param {Module[]} modules - All modules in the bundle.
-   * @param {string} dest - The file path to write the bundled module.
    */
-  constructor (code: string, entry: Module, modules: Module[], dest: string) {
+  constructor (code: string, entry: Module, modules: Module[]) {
     this.code = code
     this.entry = entry
     this.modules = modules
-    this.dest = dest
     this.dependencyTree = this.entry.dependencyTree()
   }
 
@@ -138,8 +125,20 @@ class Bundle {
     const totalBytes = this.modules
       .map((m) => m.stats.size)
       .reduce((a, b) => a + Number(b), 0)
-    const bundledBytes = fs.statSync(this.dest).size
+    const bundledBytes = this.code.length
     return (1 - bundledBytes / totalBytes) * 100
+  }
+
+  /**
+   * Write the bundled source code to a local file.
+   * @param {string} dest - The file path to write to.
+   * @param {boolean} [overwrite=false] - If true, overwrite the file if it already exists.
+   */
+  write (dest: string, overwrite: boolean = false): void {
+    if (fs.existsSync(dest) && !overwrite) {
+      throw new Error(`File already exists: ${dest}. Set 'overwrite=true' or choose a different destination path.`)
+    }
+    fs.writeFileSync(dest, this.code)
   }
 }
 
