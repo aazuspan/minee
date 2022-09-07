@@ -9,7 +9,7 @@ import { bundleModule } from './bundle.js'
 
 new Command()
   .name('minee')
-  .version('0.0.3')
+  .version('0.0.4')
   .description('📦 Earth Engine module bundler.')
   .arguments('<entry>')
   .option('-d --dest <path>', 'The local file path to write the bundled file.')

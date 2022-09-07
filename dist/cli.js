@@ -11,12 +11,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import chalk from 'chalk';
 import tree from 'terminal-tree';
 import { Command } from 'commander';
-import path from "path";
+import path from 'path';
 import * as errors from './errors.js';
 import { bundleModule } from './bundle.js';
 new Command()
     .name('minee')
-    .version('0.0.3')
+    .version('0.0.4')
     .description('📦 Earth Engine module bundler.')
     .arguments('<entry>')
     .option('-d --dest <path>', 'The local file path to write the bundled file.')
