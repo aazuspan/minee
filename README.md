@@ -27,9 +27,9 @@ graph TD
     end
 ```
 
-## Setup
+# Setup
 
-### Installation
+## Installation
 
 Download [Node.js](https://nodejs.org/en/download/), then install `minee` globally with:
 
@@ -37,13 +37,13 @@ Download [Node.js](https://nodejs.org/en/download/), then install `minee` global
 npm install -g minee
 ```
 
-### Authentication
+## Authentication
 
 If you haven't accessed an Earth Engine repository using `git` from your computer before, you'll need to authenticate first by going to https://earthengine.googlesource.com/new-password and following the instructions. This will store credentials on your computer at `~/.gitcookies` that allows `minee` to grab and bundle repositories.
 
-## Usage
+# Usage
 
-### CLI
+## CLI
 
 ```bash
 Usage: minee [options] <entry>
@@ -65,25 +65,20 @@ minee users/aazuspan/geeSharp:geeSharp --dest=./bundled
 
 ...will download the `users/aazuspan/geeSharp` repository, find any modules required through the `geeSharp` module, bundle them into a single file, and save that to `./bundled`.
 
-### JavaScript API
+## JavaScript API
 
-#### Bundling a Module
+### Bundling a Module
 
 You can use the `bundleModule` function to bundle an Earth Engine module through the JavaScript API.
 
 ```javascript
 import { bundleModule } from "minee";
 
-// Define an entry point to the module
-const url = "users/aazuspan/geeSharp:geeSharp";
-// Choose an output path to save the bundled module locally
-const dest = "./bundled.js";
-
-// Load, bundle, and export the module
-const bundled = await bundleModule(url, dest);
+// Load and bundle a module from an entry script (i.e. the script that exports all of the public functions)
+const bundled = await bundleModule("users/aazuspan/geeSharp:geeSharp");
 ```
 
-The `bundleModule` function saves the bundled module locally, but it also returns a `Bundle` object that you can use to access the bundled data through the `code`, `entry`, `modules`, and `dependencyTree` properties. For example:
+The `bundleModule` function returns a `Bundle` object that you can use to access the bundled data through the `code`, `entry`, `modules`, and `dependencyTree` properties. For example:
 
 ```javascript
 // Get the bundled source code that includes all of the required modules
@@ -100,7 +95,7 @@ The `bundleModule` function saves the bundled module locally, but it also return
 ]
 
 // Get the dependency tree for the imported module
->>> bundled.dependencyTree();
+>>> bundled.dependencyTree;
 `
 ┗ users/aazuspan/geeSharp:geeSharp (#16ed867)
  ┣ users/aazuspan/geeSharp:src/sharpeners.js (#831f9f4)
@@ -110,9 +105,13 @@ The `bundleModule` function saves the bundled module locally, but it also return
 `
 ```
 
+You can also use the `write` method to save the bundled source code to a local file.
 
+```javascript
+bundled.write('./bundled.js');
+```
 
-#### Loading a Module
+### Loading a Module
 
 For more control or to use `minee` outside of bundling, you may want to directly load modules with the `loadModule` function.
 
@@ -150,7 +149,7 @@ Node { type: "VariableDeclaration", /* ... */ }
 "users/aazuspan/geeSharp:src/utils.js"
 ```
 
-### Bundling an Existing Module
+## Bundling an Existing Module
 
 If you have an existing module that you want to bundle, the easiest way is to bundle the current entry module, rename that module, and copy-paste the bundled module to replace the old entry module.
 
@@ -158,7 +157,7 @@ Here's an example workflow using a module called `users/johnnyjackson/eetools:to
 
 1. Rename the `tools` module to `entry` in the Code Editor.
 2. Run `minee users/johnnyjackson/eetools:entry --dest=./tools`.
-3. Copy the contents of `./tools` into a new Earth Engine module called `tools`.
+3. Copy the contents of `./tools` into a new Earth Engine script called `tools`.
 
 Existing code built on your module will now automatically require the bundled version!
 
@@ -182,6 +181,6 @@ As you can see, the level of improvement varies by module. Modules with lots of 
 > **Warning**
 > Bundling adds some additional boilerplate code, so file sizes and import times *can* increase for simple, single-file modules.
 
-## Legal Disclaimer
+# Legal Disclaimer
 
 Any modules required through your entry module, including those by other authors, will be bundled into your source code file. Please check the license of any included module before distributing the bundled file. For convenience, `minee` includes a header comment listing the path of all scripts used in the bundle and any licenses marked with a `@license` tag.
