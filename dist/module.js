@@ -9,13 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { join } from 'path';
 import { fs as memfs } from 'memfs';
-import { traverse, parseSync } from '@babel/core';
+import * as parser from '@babel/parser';
+import _traverse from '@babel/traverse';
 import git from 'isomorphic-git';
 import http from 'isomorphic-git/http/node/index.js';
 import Spinner from '@slimio/async-cli-spinner';
 import chalk from 'chalk';
 import * as auth from './auth.js';
 import * as errors from './errors.js';
+const traverse = _traverse.default;
 class Module {
     constructor(path, repository, code, stats, commit) {
         this.parseDependencies = () => {
@@ -49,7 +51,7 @@ class Module {
         this.code = code;
         this.stats = stats;
         this.commit = commit;
-        this.ast = parseSync(code);
+        this.ast = parser.parse(code);
         this.license = this.parseLicense();
         this.name = path.split(':')[1].split('/').pop();
         this.dependencies = undefined;
