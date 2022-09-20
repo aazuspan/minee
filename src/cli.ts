@@ -73,9 +73,8 @@ async function runBundler (
   dest: string | undefined,
   noHeader = false
 ): Promise<void> {
-  let name
   try {
-    name = entry.split(':')[1].split('/').pop()
+    const name = entry.split(':')[1].split('/').pop()
     dest = dest || `./${name}.bundled.js`
     console.log(`Bundling ${chalk.blue(entry)} to ${chalk.yellow(dest)}...\n`)
   }
@@ -89,6 +88,7 @@ async function runBundler (
   }
 
   try {
+    const start = Date.now()
     const bundled = await bundleModule(entry, { noHeader })
     const moduleTree = tree(bundled.entry.dependencyTree({ pretty: true }), {
       symbol: false,
@@ -117,7 +117,8 @@ Total imports: ${fileNumberColor(
         1
       )}%`
     )}
-📦 Bundle saved to ${chalk.yellow.bold(dest)}!
+Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + "s")}
+\n📦 Bundle saved to ${chalk.yellow.bold(dest)}
     `)
   } catch (err) {
     if (

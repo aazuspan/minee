@@ -65,6 +65,7 @@ function runBundler(entry, dest, noHeader = false) {
             return;
         }
         try {
+            const start = Date.now();
             const bundled = yield bundleModule(entry, { noHeader });
             const moduleTree = tree(bundled.entry.dependencyTree({ pretty: true }), {
                 symbol: false,
@@ -84,7 +85,8 @@ ${moduleTree}
 
 File size: ${fileSizeColor(`${fileSizeOperator}${Math.abs(compressedPct).toFixed(1)}%`)}
 Total imports: ${fileNumberColor(`${fileNumberOperator}${((1 - 1 / bundled.modules.length) * 100).toFixed(1)}%`)}
-📦 Bundle saved to ${chalk.yellow.bold(dest)}!
+Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + "s")}
+\n📦 Bundle saved to ${chalk.yellow.bold(dest)}
     `);
         }
         catch (err) {
