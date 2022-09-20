@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { fs as memfs } from 'memfs'
-import { traverse, parseSync } from '@babel/core'
-import { NodePath } from '@babel/traverse'
+import * as parser from '@babel/parser'
+import _traverse, { NodePath } from '@babel/traverse'
 import { CallExpression, Comment } from '@babel/types'
 import git from 'isomorphic-git'
 import http from 'isomorphic-git/http/node/index.js'
@@ -9,6 +9,9 @@ import Spinner from '@slimio/async-cli-spinner'
 import chalk from 'chalk'
 import * as auth from './auth.js'
 import * as errors from './errors.js'
+
+// See https://github.com/babel/babel/issues/13855
+const traverse = (_traverse as any).default
 
 type DependencyTree = string | { [k: string]: DependencyTree[] }
 
@@ -19,7 +22,7 @@ class Module {
   code: string
   stats: { size: number }
   commit: string
-  ast: ReturnType<typeof parseSync>
+  ast: ReturnType<typeof parser.parse>
   license: string
   name: string
   dependencies: undefined | Module[]
@@ -35,7 +38,7 @@ class Module {
     this.code = code
     this.stats = stats
     this.commit = commit
-    this.ast = parseSync(code)
+    this.ast = parser.parse(code)
     this.license = this.parseLicense()
     this.name = path.split(':')[1].split('/').pop() as string
     this.dependencies = undefined
@@ -146,7 +149,6 @@ class Module {
    */
   parseDependencies = (): string[] => {
     const reqs: string[] = []
-
     traverse(this.ast, {
       CallExpression (path: NodePath<CallExpression>) {
         const node = path.node
