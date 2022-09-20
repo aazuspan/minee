@@ -29,6 +29,7 @@ new Command()
 function runBundler(entry, dest, noHeader = false) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const start = Date.now();
             const bundled = yield bundleModule(entry, { noHeader });
             if (dest === undefined) {
                 dest = path.resolve(`${bundled.entry.name}.bundled.js`);
@@ -51,7 +52,8 @@ ${moduleTree}
 
 File size: ${fileSizeColor(`${fileSizeOperator}${Math.abs(compressedPct).toFixed(1)}%`)}
 Total imports: ${fileNumberColor(`${fileNumberOperator}${((1 - 1 / bundled.modules.length) * 100).toFixed(1)}%`)}
-📦 Bundle saved to ${chalk.yellow.bold(dest)}!
+Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + "s")}
+\n📦 Bundle saved to ${chalk.yellow.bold(dest)}
     `);
         }
         catch (err) {

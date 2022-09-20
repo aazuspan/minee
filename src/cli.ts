@@ -33,7 +33,9 @@ async function runBundler (
   dest: string,
   noHeader = false
 ): Promise<void> {
+  
   try {
+    const start = Date.now()
     const bundled = await bundleModule(entry, { noHeader })
     if (dest === undefined) {
       dest = path.resolve(`${bundled.entry.name}.bundled.js`)
@@ -65,7 +67,8 @@ Total imports: ${fileNumberColor(
         1
       )}%`
     )}
-📦 Bundle saved to ${chalk.yellow.bold(dest)}!
+Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + "s")}
+\n📦 Bundle saved to ${chalk.yellow.bold(dest)}
     `)
   } catch (err) {
     if (
