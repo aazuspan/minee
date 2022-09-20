@@ -46,24 +46,40 @@ If you haven't accessed an Earth Engine repository using `git` from your compute
 ## CLI
 
 ```bash
-Usage: minee [options] <entry>
+Usage: minee [options]
 
 📦 Earth Engine module bundler.
 
 Options:
-  -V, --version      output the version number
-  -d, --dest <path>  The local file path to write the bundled module.
-  --no-header        Drop header information from the bundled file
-  -h, --help         display help for command
+  -V, --version       output the version number
+  -e, --entry <path>  The path to the module entry point, e.g. users/username/repository:module.
+  -d --dest <path>    The local file path to write the bundled file.
+  --no-header         Drop header information from the bundled file.
+  -h, --help          display help for command
 ```
 
 Pass an Earth Engine module path to the `minee` command, with an optional destination path to save the bundled module. For example, the following command...
 
 ```bash
-minee users/aazuspan/geeSharp:geeSharp --dest=./bundled
+minee --entry=users/aazuspan/geeSharp:geeSharp --dest=./bundled
 ```
 
 ...will download the `users/aazuspan/geeSharp` repository, find any modules required through the `geeSharp` module, bundle them into a single file, and save that to `./bundled`.
+
+### Configuration File
+
+To avoid entering CLI options every time `minee` is run, you can create a `.minee.json` configuration file in the root of your project where you run `minee`. An example configuration file is shown below:
+
+```javascript
+/* .minee.json */
+{
+  "entry": "users/aazuspan/geeSharp:geeSharp",
+  "dest": "./bundled",
+  "noHeader": false
+}
+```
+
+Now running `minee` with no options will produce the same results as before. `minee` prioritizes CLI options over configuration options, so you can override the configuration file by passing options as needed.
 
 ## JavaScript API
 

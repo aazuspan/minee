@@ -11,30 +11,63 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import chalk from 'chalk';
 import tree from 'terminal-tree';
 import { Command } from 'commander';
-import path from 'path';
+import fs from "fs";
 import * as errors from './errors.js';
 import { bundleModule } from './bundle.js';
+function loadConfig() {
+    const defaultConfig = {
+        entry: undefined,
+        dest: undefined,
+        noHeader: false,
+    };
+    try {
+        const config = JSON.parse(fs.readFileSync(".minee.json", "utf8"));
+        return Object.assign(Object.assign({}, defaultConfig), config);
+    }
+    catch (err) {
+        return defaultConfig;
+    }
+}
 new Command()
     .name('minee')
     .version('0.0.5')
     .description('📦 Earth Engine module bundler.')
-    .arguments('<entry>')
+    .option('-e, --entry <path>', 'The path to the module entry point, e.g. users/username/repository:module.')
     .option('-d --dest <path>', 'The local file path to write the bundled file.')
     .option('--no-header', 'Drop header information from the bundled file.')
-    .action((entry, options) => __awaiter(void 0, void 0, void 0, function* () {
-    yield runBundler(entry, options.dest, !options.header);
+    .action((options) => __awaiter(void 0, void 0, void 0, function* () {
+    const config = loadConfig();
+    const entryPath = options.entry || config.entry;
+    const destPath = options.dest || config.dest;
+    const noHeader = options.header === false || config.noHeader;
+    if (entryPath === undefined) {
+        console.log(`
+      ${chalk.red('No entry point specified!')} Please specify an entry point using the -e or --entry options, or by adding an 'entry' property to your .minee.json configuration file.
+      `);
+        return;
+    }
+    yield runBundler(entryPath, destPath, noHeader);
 }))
     .showHelpAfterError()
     .parse(process.argv);
 function runBundler(entry, dest, noHeader = false) {
     return __awaiter(this, void 0, void 0, function* () {
+        let name;
+        try {
+            name = entry.split(':')[1].split('/').pop();
+            dest = dest || `./${name}.bundled.js`;
+            console.log(`Bundling ${chalk.blue(entry)} to ${chalk.yellow(dest)}...\n`);
+        }
+        catch (err) {
+            console.log(`
+      ${chalk.red('Invalid entry point!')} '${entry}' does not match the required format 'users/username/repository:module'.
+      `);
+            return;
+        }
         try {
             const start = Date.now();
             const bundled = yield bundleModule(entry, { noHeader });
-            if (dest === undefined) {
-                dest = path.resolve(`${bundled.entry.name}.bundled.js`);
-            }
-            const moduleTree = tree(bundled.entry.dependencyTree({ pretty: false }), {
+            const moduleTree = tree(bundled.entry.dependencyTree({ pretty: true }), {
                 symbol: false,
                 highlight: false,
                 padding: 4
