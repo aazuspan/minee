@@ -10,10 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import fs from 'fs';
 import tree from 'terminal-tree';
 import { transformSync } from 'esbuild';
+import _traverse from '@babel/traverse';
+import _generator from "@babel/generator";
+import * as parser from '@babel/parser';
 import { loadModule } from './module.js';
-const wrapModule = (module) => {
+const traverse = _traverse.default;
+const generate = _generator.default;
+const wrapModule = (module, requireIdentifier) => {
     const wrapped = `"${module.path}":
-    function (exports, require) {
+    function (exports, ${requireIdentifier}) {
       ${module.code}
       return exports;
     },
@@ -41,40 +46,58 @@ ${licenseFound ? licenseList : ''}
 Bundled by minee (${new Date().toISOString()}).*/\n\n`;
     return header;
 };
-function bundleModule(entry, { noHeader = false } = {}) {
+const renameRequires = (code, to) => {
+    const ast = parser.parse(code);
+    traverse(ast, {
+        enter(path) {
+            if (path.isIdentifier({ name: "require" })) {
+                path.node.name = to;
+            }
+        }
+    });
+    return generate(ast, { retainLines: true }).code;
+};
+function bundleModule(entry, { header = false, minify = true, keepNames = false } = {}) {
     return __awaiter(this, void 0, void 0, function* () {
+        const mangling = minify && !keepNames;
+        const requireIdentifier = mangling ? "require" : "_requireBundled";
         const entryModule = yield loadModule(entry);
         const modules = [entryModule, ...entryModule.listDependencies()];
-        const wrapped = modules.map((module) => wrapModule(module));
-        const header = noHeader ? '' : buildHeader(entryModule, modules);
-        const result = `
-    var modules = {
-        ${wrapped.join('\n')}
-    };
-
-    function loads(modules, entry) {
-        var moduleCache = {};
+        const wrapped = modules.map((module) => wrapModule(module, requireIdentifier));
+        const head = header ? buildHeader(entryModule, modules) : '';
+        let code = `
+  var modules = {
+    ${wrapped.join('\n')}
+  };
+  
+  function loads(modules, entry) {
+    var moduleCache = {};
+    
+    var ${requireIdentifier} = function (moduleName) {
+      if (moduleCache[moduleName]) {
+        return moduleCache[moduleName];
+      }
+      var exp = {};
+      moduleCache[moduleName] = exp;
       
-        var require = function (moduleName) {
-          if (moduleCache[moduleName]) {
-              return moduleCache[moduleName];
-          }
-          var exp = {};
-          moduleCache[moduleName] = exp;
-      
-          return modules[moduleName](exp, require);
+          return modules[moduleName](exp, ${requireIdentifier});
         };
-      
-        return require(entry);
+        
+        return ${requireIdentifier}(entry);
       }
 
       exports = loads(modules, "${entry}");
   `;
-        const minified = transformSync(result, {
-            minify: true,
-            target: 'es5'
-        }).code;
-        const output = `${header}${minified}`;
+        code = mangling ? code : renameRequires(code, requireIdentifier);
+        if (minify) {
+            code = transformSync(code, {
+                minifyWhitespace: true,
+                minifySyntax: true,
+                minifyIdentifiers: !keepNames,
+                target: 'es5'
+            }).code;
+        }
+        const output = `${head}${code}`;
         return new Bundle(output, entryModule, modules);
     });
 }
