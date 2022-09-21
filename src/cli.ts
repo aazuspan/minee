@@ -3,34 +3,9 @@
 import chalk from 'chalk'
 import tree from 'terminal-tree'
 import { Command } from 'commander'
-import fs from "fs";
 import * as errors from './errors.js'
 import { bundleModule } from './bundle.js'
-
-type Config = {
-  entry: string | undefined;
-  dest: string | undefined;
-  noHeader: boolean;
-};
-
-/**
- * Load bundling options from a local config file, swapping in defaults for missing options.
- * @returns {Config} The configuration settings for bundling.
- */
-function loadConfig(): Config {
-  const defaultConfig: Config = {
-    entry: undefined,
-    dest: undefined,
-    noHeader: false,
-  }
-
-  try {
-    const config = JSON.parse(fs.readFileSync(".minee.json", "utf8"));
-    return { ...defaultConfig, ...config };
-  } catch (err) {
-    return defaultConfig;
-  }
-}
+import { loadConfig, Config } from "./config.js"
 
 
 new Command()
@@ -39,23 +14,12 @@ new Command()
   .description('📦 Earth Engine module bundler.')
   .option('-e, --entry <path>', 'The path to the module entry point, e.g. users/username/repository:module.')
   .option('-d --dest <path>', 'The local file path to write the bundled file.')
+  .option('--no-minify', 'Skip minifying code after bundling.')
   .option('--no-header', 'Drop header information from the bundled file.')
-  .action(async (options: { entry: string, dest: string, header: boolean }) => {
-    const config = loadConfig();
-    const entryPath = options.entry || config.entry;
-    const destPath = options.dest || config.dest;
-    const noHeader = options.header === false || config.noHeader;
-
-    if (entryPath === undefined) {
-      console.log(`
-      ${chalk.red(
-        'No entry point specified!'
-      )} Please specify an entry point using the -e or --entry options, or by adding an 'entry' property to your .minee.json configuration file.
-      `)
-      return
-    }
-
-    await runBundler(entryPath, destPath, noHeader)
+  .option('--keep-names', 'Avoid changing internal variable names when minifying.')
+  .action(async (options: Config) => {
+    const config = { ...loadConfig(), ...options };
+    await runBundler(config)
   })
   .showHelpAfterError()
   .parse(process.argv)
@@ -68,11 +32,16 @@ new Command()
  * @param {boolean} [noHeader=false] - If false, a header will be included in the bundled file
  * with information about the source and license for the bundled modules.
  */
-async function runBundler (
-  entry: string,
-  dest: string | undefined,
-  noHeader = false
-): Promise<void> {
+async function runBundler ({entry, dest, minify, header, keepNames}: Config={}): Promise<void> {
+  if (entry === undefined) {
+    console.log(`
+    ${chalk.red(
+      'No entry point specified!'
+    )} Please specify an entry point using the -e or --entry options, or by adding an 'entry' property to your .minee.json configuration file.
+    `)
+    return
+  }
+
   try {
     const name = entry.split(':')[1].split('/').pop()
     dest = dest || `./${name}.bundled.js`
@@ -89,7 +58,7 @@ async function runBundler (
 
   try {
     const start = Date.now()
-    const bundled = await bundleModule(entry, { noHeader })
+    const bundled = await bundleModule(entry, { header, minify, keepNames })
     const moduleTree = tree(bundled.entry.dependencyTree({ pretty: true }), {
       symbol: false,
       highlight: false,

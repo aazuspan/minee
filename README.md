@@ -54,28 +54,42 @@ Options:
   -V, --version       output the version number
   -e, --entry <path>  The path to the module entry point, e.g. users/username/repository:module.
   -d --dest <path>    The local file path to write the bundled file.
+  --no-minify         Skip minifying code after bundling.
   --no-header         Drop header information from the bundled file.
+  --keep-names        Avoid changing internal variable names when minifying.
   -h, --help          display help for command
 ```
 
 Pass an Earth Engine module path to the `minee` command, with an optional destination path to save the bundled module. For example, the following command...
 
 ```bash
-minee --entry=users/aazuspan/geeSharp:geeSharp --dest=./bundled
+minee --entry=users/aazuspan/geeSharp:geeSharp --dest=./bundled --keep-names
 ```
 
 ...will download the `users/aazuspan/geeSharp` repository, find any modules required through the `geeSharp` module, bundle them into a single file, and save that to `./bundled`.
 
 ### Configuration File
 
-To avoid entering CLI options every time `minee` is run, you can create a `.minee.json` configuration file in the root of your project where you run `minee`. An example configuration file is shown below:
+To avoid entering CLI options every time `minee` is run, you can create a `.minee.json` configuration file in the root of your project where you run `minee`.
+
+The following options are supported:
+
+| name | type | default | description |
+|---|---|---|---|
+| entry | string |  | Entry path to the Earth Engine module, e.g. `users/username/repo:module` |
+| dest | string |  | Optional local path to write the bundled file. If none is provided, `<entry>.bundled.js` will be used. |
+| header | boolean | true | If `true`, a descriptive header is included in the bundled file. |
+| minify | boolean | true | If `true`, the bundle is minified to reduce file size. |
+| keepNames | boolean | false | If `true`, all identifiers are preserved in the bundled source code when minifying. This option has no effect on functionality, but makes the bundled code easier to read and debug at the cost of larger file size.  |
+
+Below is an example configuration file:
 
 ```javascript
 /* .minee.json */
 {
   "entry": "users/aazuspan/geeSharp:geeSharp",
   "dest": "./bundled",
-  "noHeader": false
+  "keepNames": true
 }
 ```
 
@@ -85,13 +99,19 @@ Now running `minee` with no options will produce the same results as before. `mi
 
 ### Bundling a Module
 
-You can use the `bundleModule` function to bundle an Earth Engine module through the JavaScript API.
+You can use the `bundleModule` function to bundle an Earth Engine module through the JavaScript API. The function requires an entry path argument and accepts the following options: 
+
+| name | type | default | description |
+|---|---|---|---|
+| header | boolean | true | If `true`, a descriptive header is included in the bundled file. |
+| minify | boolean | true | If `true`, the bundle is minified to reduce file size. |
+| keepNames | boolean | false | If `true`, all identifiers are preserved in the bundled source code when minifying. This option doesn't affect functionality of the bundled code, but may make it easier to inspect or debug the bundled code.  |
 
 ```javascript
 import { bundleModule } from "minee";
 
-// Load and bundle a module from an entry script (i.e. the script that exports all of the public functions)
-const bundled = await bundleModule("users/aazuspan/geeSharp:geeSharp");
+// Load and bundle a module from an entry script
+const bundled = await bundleModule("users/aazuspan/geeSharp:geeSharp", {keepNames: true});
 ```
 
 The `bundleModule` function returns a `Bundle` object that you can use to access the bundled data through the `code`, `entry`, `modules`, and `dependencyTree` properties. For example:
@@ -121,7 +141,7 @@ The `bundleModule` function returns a `Bundle` object that you can use to access
 `
 ```
 
-You can also use the `write` method to save the bundled source code to a local file.
+Use the `write` method to save the bundled source code to a local file.
 
 ```javascript
 bundled.write('./bundled.js');
@@ -129,7 +149,13 @@ bundled.write('./bundled.js');
 
 ### Loading a Module
 
-For more control or to use `minee` outside of bundling, you may want to directly load modules with the `loadModule` function.
+For more control or to use `minee` outside of bundling, you may want to directly load modules with the `loadModule` function. The function accepts the following options:
+
+| name | type | default | description |
+|---|---|---|---|
+| showProgress | boolean | true | If `true`, a spinner will display progress when cloning repositories. |
+| loadDepedencies | boolean | true | If `true`, all downstream dependencies required through the module (including from external repositories) will be loaded recursively, allowing you to access them thorugh the `dependencies` property. |
+| allowCircular | boolean | false | If `true`, circular dependencies which would break Earth Engine imports are ignored. |
 
 ```javascript
 import { loadModule } from "minee";
@@ -139,11 +165,6 @@ const url = "users/aazuspan/geeSharp:geeSharp";
 // Load the module and return a Module object.
 const geesharp = await loadModule(url, {showProgress: true});
 ```
-
-The `loadModule` function takes an `options` object where you can define the following:
-- `showProgress` - If `true`, a spinner will display progress when cloning repositories. Defaults to `true`.
-- `loadDependencies` - If `true`, all downstream dependencies required through the module (including from external repositories) will be loaded recursively, allowing you to access them thorugh the `dependencies` property. Defaults to `true`.
-- `allowCircular` - If `true`, circular dependencies which would break Earth Engine imports are ignored. Defaults to `false`.
 
 Once a module is loaded, you can access various properties such as the module's `path`, `code`, `ast`, `commit`, `license`, or `dependencyTree`. If `loadDependencies` was not set to `false`, you can access depended modules through `dependencies`. For example:
 
@@ -172,7 +193,7 @@ If you have an existing module that you want to bundle, the easiest way is to bu
 Here's an example workflow using a module called `users/johnnyjackson/eetools:tools`:
 
 1. Rename the `tools` module to `entry` in the Code Editor.
-2. Run `minee users/johnnyjackson/eetools:entry --dest=./tools`.
+2. Run `minee -e users/johnnyjackson/eetools:entry -d ./tools`.
 3. Copy the contents of `./tools` into a new Earth Engine script called `tools`.
 
 Existing code built on your module will now automatically require the bundled version!
@@ -182,7 +203,7 @@ Existing code built on your module will now automatically require the bundled ve
 
 ## Example Results
 
-I checked file size and import time before and after bundling several different Earth Engine modules to demonstrate possible speed-ups. Import times represent the best cumulative time over three trials.
+I checked file size and import time before and after bundling several different Earth Engine modules to demonstrate possible speed-ups. Import times represent the best cumulative time over three trials using the default CLI options.
 
 | Module             | File Size | Import time |
 |--------------------|:---------:|:-----------:|
