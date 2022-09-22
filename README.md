@@ -17,7 +17,6 @@ graph TD
     utils2[src/utils.js]-.->m;
     m--->|Bundle and minify|entry2(geeSharp);
     end
-
     subgraph s1[Before Bundling]
     u1{User}-->|requires|entry1(geeSharp)
     entry1-->|requires|sharpeners1[src/sharpeners.js];
@@ -97,15 +96,11 @@ Now running `minee` with no options will produce the same results as before. `mi
 
 ## JavaScript API
 
+The [documentation](https://aazuspan.github.io/minee/) provides detailed info on the API, but the sections below give a quick guide to get started.
+
 ### Bundling a Module
 
-You can use the `bundleModule` function to bundle an Earth Engine module through the JavaScript API. The function requires an entry path argument and accepts the following options: 
-
-| name | type | default | description |
-|---|---|---|---|
-| header | boolean | true | If `true`, a descriptive header is included in the bundled file. |
-| minify | boolean | true | If `true`, the bundle is minified to reduce file size. |
-| keepNames | boolean | false | If `true`, all identifiers are preserved in the bundled source code when minifying. This option doesn't affect functionality of the bundled code, but may make it easier to inspect or debug the bundled code.  |
+You can use the [`bundleModule`](https://aazuspan.github.io/minee/functions/bundleModule.html) function to bundle an Earth Engine module through the JavaScript API.
 
 ```javascript
 import { bundleModule } from "minee";
@@ -114,34 +109,7 @@ import { bundleModule } from "minee";
 const bundled = await bundleModule("users/aazuspan/geeSharp:geeSharp", {keepNames: true});
 ```
 
-The `bundleModule` function returns a `Bundle` object that you can use to access the bundled data through the `code`, `entry`, `modules`, and `dependencyTree` properties. For example:
-
-```javascript
-// Get the bundled source code that includes all of the required modules
->>> bundled.code
-"var modules={ /* ... */ }" 
-
-// Get the path of all modules bundled within the entry module
->>> bundled.modules.map((module) => module.path);
-[
-  'users/aazuspan/geeSharp:geeSharp',
-  'users/aazuspan/geeSharp:src/sharpeners.js',
-  'users/aazuspan/geeSharp:src/metrics.js',
-  'users/aazuspan/geeSharp:src/utils.js'
-]
-
-// Get the dependency tree for the imported module
->>> bundled.dependencyTree;
-`
-┗ users/aazuspan/geeSharp:geeSharp (#16ed867)
- ┣ users/aazuspan/geeSharp:src/sharpeners.js (#831f9f4)
- ┃┗ users/aazuspan/geeSharp:src/utils.js (#f56281e)
- ┗ users/aazuspan/geeSharp:src/metrics.js (#626188d)
-  ┗ users/aazuspan/geeSharp:src/utils.js (#f56281e)
-`
-```
-
-Use the `write` method to save the bundled source code to a local file.
+This returns a [Bundle](https://aazuspan.github.io/minee/classes/Bundle.html) object that contains the bundled source code and other properties. Use the [`Bundle.write`](https://aazuspan.github.io/minee/classes/Bundle.html#write) method to save the bundled source code to a local file.
 
 ```javascript
 bundled.write('./bundled.js');
@@ -149,13 +117,8 @@ bundled.write('./bundled.js');
 
 ### Loading a Module
 
-For more control or to use `minee` outside of bundling, you may want to directly load modules with the `loadModule` function. The function accepts the following options:
+For more control or to use `minee` outside of bundling, you may want to directly load modules with the [`loadModule`](https://aazuspan.github.io/minee/functions/loadModule.html) function.
 
-| name | type | default | description |
-|---|---|---|---|
-| showProgress | boolean | true | If `true`, a spinner will display progress when cloning repositories. |
-| loadDepedencies | boolean | true | If `true`, all downstream dependencies required through the module (including from external repositories) will be loaded recursively, allowing you to access them thorugh the `dependencies` property. |
-| allowCircular | boolean | false | If `true`, circular dependencies which would break Earth Engine imports are ignored. |
 
 ```javascript
 import { loadModule } from "minee";
@@ -166,25 +129,7 @@ const url = "users/aazuspan/geeSharp:geeSharp";
 const geesharp = await loadModule(url, {showProgress: true});
 ```
 
-Once a module is loaded, you can access various properties such as the module's `path`, `code`, `ast`, `commit`, `license`, or `dependencyTree`. If `loadDependencies` was not set to `false`, you can access depended modules through `dependencies`. For example:
-
-```javascript
-// Get the abstract syntax tree of the module source code.
->>> geesharp.ast.program.body[0]
-Node { type: "VariableDeclaration", /* ... */ } 
-
-// Get the commit hash of the loaded version.
->>> geesharp.commit;
-"16ed867"
-
-// Get the path of the module's first dependency.
->>> geesharp.dependencies[0].path;
-"users/aazuspan/geeSharp:src/sharpeners.js"
-
-// Get the path of the module's first dependency's first dependency.
->>> geesharp.dependencies[0].dependencies[0].path;
-"users/aazuspan/geeSharp:src/utils.js"
-```
+After cloning any remote repositories, this returns a [Module](https://aazuspan.github.io/minee/classes/Module.html) object that contains information about the requested module and any modules that were required by it.
 
 ## Bundling an Existing Module
 

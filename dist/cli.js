@@ -25,7 +25,6 @@ new Command()
     .option('--keep-names', 'Avoid changing internal variable names when minifying.')
     .action((options) => __awaiter(void 0, void 0, void 0, function* () {
     const config = Object.assign(Object.assign({}, loadConfig()), options);
-    console.log(config);
     yield runBundler(config);
 }))
     .showHelpAfterError()
