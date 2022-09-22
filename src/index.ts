@@ -1,4 +1,4 @@
-import { loadModule } from './module.js'
-import { bundleModule } from './bundle.js'
+import { loadModule, Module, Repository, DependencyTree } from './module.js'
+import { bundleModule, Bundle } from './bundle.js'
 
-export { loadModule, bundleModule }
+export { loadModule, bundleModule, Bundle, Module, Repository, DependencyTree }
