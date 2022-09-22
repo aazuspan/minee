@@ -16,7 +16,7 @@ import { bundleModule } from './bundle.js';
 import { loadConfig } from "./config.js";
 new Command()
     .name('minee')
-    .version('0.0.5')
+    .version('0.0.6')
     .description('📦 Earth Engine module bundler.')
     .option('-e, --entry <path>', 'The path to the module entry point, e.g. users/username/repository:module.')
     .option('-d --dest <path>', 'The local file path to write the bundled file.')
