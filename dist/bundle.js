@@ -11,7 +11,7 @@ import fs from 'fs';
 import tree from 'terminal-tree';
 import { transformSync } from 'esbuild';
 import _traverse from '@babel/traverse';
-import _generator from "@babel/generator";
+import _generator from '@babel/generator';
 import * as parser from '@babel/parser';
 import { loadModule } from './module.js';
 const traverse = _traverse.default;
@@ -50,7 +50,7 @@ const renameRequires = (code, to) => {
     const ast = parser.parse(code);
     traverse(ast, {
         enter(path) {
-            if (path.isIdentifier({ name: "require" })) {
+            if (path.isIdentifier({ name: 'require' })) {
                 path.node.name = to;
             }
         }
@@ -60,7 +60,7 @@ const renameRequires = (code, to) => {
 function bundleModule(entry, { header = false, minify = true, keepNames = false } = {}) {
     return __awaiter(this, void 0, void 0, function* () {
         const mangling = minify && !keepNames;
-        const requireIdentifier = mangling ? "require" : "_requireBundled";
+        const requireIdentifier = mangling ? 'require' : '_requireBundled';
         const entryModule = yield loadModule(entry);
         const modules = [entryModule, ...entryModule.listDependencies()];
         const wrapped = modules.map((module) => wrapModule(module, requireIdentifier));

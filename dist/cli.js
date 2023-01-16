@@ -13,10 +13,10 @@ import tree from 'terminal-tree';
 import { Command } from 'commander';
 import * as errors from './errors.js';
 import { bundleModule } from './bundle.js';
-import { loadConfig } from "./config.js";
+import { loadConfig } from './config.js';
 new Command()
     .name('minee')
-    .version('0.0.6')
+    .version('0.0.7')
     .description('📦 Earth Engine module bundler.')
     .option('-e, --entry <path>', 'The path to the module entry point, e.g. users/username/repository:module.')
     .option('-d --dest <path>', 'The local file path to write the bundled file.')
@@ -39,7 +39,7 @@ function runBundler({ entry, dest, minify, header, keepNames } = {}) {
         }
         try {
             const name = entry.split(':')[1].split('/').pop();
-            dest = dest || `./${name}.bundled.js`;
+            dest = dest === 'undefined' ? dest = `./${name}.bundled.js` : dest;
             console.log(`Bundling ${chalk.blue(entry)} to ${chalk.yellow(dest)}...\n`);
         }
         catch (err) {
@@ -69,7 +69,7 @@ ${moduleTree}
 
 File size: ${fileSizeColor(`${fileSizeOperator}${Math.abs(compressedPct).toFixed(1)}%`)}
 Total imports: ${fileNumberColor(`${fileNumberOperator}${((1 - 1 / bundled.modules.length) * 100).toFixed(1)}%`)}
-Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + "s")}
+Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + 's')}
 \n📦 Bundle saved to ${chalk.yellow.bold(dest)}
     `);
         }

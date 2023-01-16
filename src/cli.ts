@@ -5,12 +5,11 @@ import tree from 'terminal-tree'
 import { Command } from 'commander'
 import * as errors from './errors.js'
 import { bundleModule } from './bundle.js'
-import { loadConfig, Config } from "./config.js"
-
+import { loadConfig, Config } from './config.js'
 
 new Command()
   .name('minee')
-  .version('0.0.6')
+  .version('0.0.7')
   .description('📦 Earth Engine module bundler.')
   .option('-e, --entry <path>', 'The path to the module entry point, e.g. users/username/repository:module.')
   .option('-d --dest <path>', 'The local file path to write the bundled file.')
@@ -18,7 +17,7 @@ new Command()
   .option('--no-header', 'Drop header information from the bundled file.')
   .option('--keep-names', 'Avoid changing internal variable names when minifying.')
   .action(async (options: Config) => {
-    const config = { ...loadConfig(), ...options };
+    const config = { ...loadConfig(), ...options }
     await runBundler(config)
   })
   .showHelpAfterError()
@@ -32,7 +31,7 @@ new Command()
  * @param {boolean} [noHeader=false] - If false, a header will be included in the bundled file
  * with information about the source and license for the bundled modules.
  */
-async function runBundler ({entry, dest, minify, header, keepNames}: Config={}): Promise<void> {
+async function runBundler ({ entry, dest, minify, header, keepNames }: Config = {}): Promise<void> {
   if (entry === undefined) {
     console.log(`
     ${chalk.red(
@@ -43,11 +42,11 @@ async function runBundler ({entry, dest, minify, header, keepNames}: Config={}):
   }
 
   try {
-    const name = entry.split(':')[1].split('/').pop()
-    dest = dest || `./${name}.bundled.js`
+    const name = entry.split(':')[1].split('/').pop() as string
+    dest = dest === 'undefined' ? dest = `./${name}.bundled.js` : dest as string
+
     console.log(`Bundling ${chalk.blue(entry)} to ${chalk.yellow(dest)}...\n`)
-  }
-  catch (err) {
+  } catch (err) {
     console.log(`
       ${chalk.red(
         'Invalid entry point!'
@@ -86,7 +85,7 @@ Total imports: ${fileNumberColor(
         1
       )}%`
     )}
-Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + "s")}
+Time elapsed: ${chalk.green(((Date.now() - start) / 1000).toFixed(2) + 's')}
 \n📦 Bundle saved to ${chalk.yellow.bold(dest)}
     `)
   } catch (err) {

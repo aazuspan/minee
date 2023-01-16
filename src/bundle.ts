@@ -2,7 +2,7 @@ import fs from 'fs'
 import tree from 'terminal-tree'
 import { transformSync } from 'esbuild'
 import _traverse, { NodePath } from '@babel/traverse'
-import _generator from "@babel/generator"
+import _generator from '@babel/generator'
 import * as parser from '@babel/parser'
 
 import { loadModule, Module, DependencyTree } from './module.js'
@@ -14,7 +14,7 @@ const generate = (_generator as any).default
 /**
  * Wrap a module's source code for bundling.
  * @param {Module} module - The module to wrap.
- * @param {string} requireIdentifier - The identifier to use for `require` calls. 
+ * @param {string} requireIdentifier - The identifier to use for `require` calls.
  * @return {string} The wrapped source code.
  */
 const wrapModule = (module: Module, requireIdentifier: string): string => {
@@ -67,13 +67,13 @@ Bundled by minee (${new Date().toISOString()}).*/\n\n`
 const renameRequires = (code: string, to: string): string => {
   const ast = parser.parse(code)
   traverse(ast, {
-    enter(path: NodePath) {
-      if (path.isIdentifier({name: "require"})) {
+    enter (path: NodePath) {
+      if (path.isIdentifier({ name: 'require' })) {
         path.node.name = to
       }
     }
   })
- return generate(ast, {retainLines: true}).code
+  return generate(ast, { retainLines: true }).code
 }
 
 /**
@@ -83,7 +83,7 @@ const renameRequires = (code: string, to: string): string => {
  * @param {boolean} [options.header=true] - If true, a header will be included in the bundled file
  * with information about the source and license for the bundled modules.
  * @param {boolean} [options.minify=false] - If true, the bundled file will be minified.
- * @param {boolean} [options.keepNames=false] - If true, all identifiers will be preserved while 
+ * @param {boolean} [options.keepNames=false] - If true, all identifiers will be preserved while
  * minifying. Otherwise, minifying will mangle names to reduce file size (without affecting the public API).
  * @return {Promise<Bundle>} A promise that resolves to a Bundle object containing the bundled code.
  */
@@ -94,7 +94,7 @@ async function bundleModule (
   // If we're not going to mangle identifiers, we need to replace `require` to avoid the
   // Code Editor making GET requests automatically.
   const mangling = minify && !keepNames
-  const requireIdentifier = mangling ? "require" : "_requireBundled"
+  const requireIdentifier = mangling ? 'require' : '_requireBundled'
 
   const entryModule = await loadModule(entry)
   const modules = [entryModule, ...entryModule.listDependencies()]
@@ -125,7 +125,7 @@ async function bundleModule (
   `
   // Rename any `require` call to prevent the Code Editor from automatically running them.
   code = mangling ? code : renameRequires(code, requireIdentifier)
-  
+
   if (minify) {
     code = transformSync(code, {
       minifyWhitespace: true,
@@ -134,7 +134,7 @@ async function bundleModule (
       target: 'es5'
     }).code
   }
-  
+
   const output = `${head}${code}`
   return new Bundle(output, entryModule, modules)
 }
