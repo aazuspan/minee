@@ -113,16 +113,15 @@ async function bundleModule (
       if (moduleCache[moduleName]) {
         return moduleCache[moduleName];
       }
-      var exp = {};
-      moduleCache[moduleName] = exp;
+      var bundleExports = modules[moduleName]({}, ${requireIdentifier});
+      moduleCache[moduleName] = bundleExports;  
+      return bundleExports;
+    };
       
-          return modules[moduleName](exp, ${requireIdentifier});
-        };
-        
-        return ${requireIdentifier}(entry);
-      }
+    return ${requireIdentifier}(entry);
+  }
 
-      exports = loads(modules, "${entry}");
+  exports = loads(modules, "${entry}");
   `
   // Rename any `require` call to prevent the Code Editor from automatically running them.
   code = mangling ? code : renameRequires(code, requireIdentifier)
