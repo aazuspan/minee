@@ -29,6 +29,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "update-version": "sed -i \"s/version = '\\([^']*\\)'/version = '$npm_package_version'/\" src/version.ts",
+    "preversion": "npm run lint && npm run test && npm run update-version && npm run build",
+    "postversion": "git add src/version.ts dist/version.js && git commit -m 'Bump version to '$npm_package_version''",
     "lint": "eslint src --fix",
     "test": "npm run build && ava",
     "start": "npm run build && node dist/cli.js",
