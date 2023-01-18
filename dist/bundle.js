@@ -13,6 +13,7 @@ import { transformSync } from 'esbuild';
 import _traverse from '@babel/traverse';
 import _generator from '@babel/generator';
 import * as parser from '@babel/parser';
+import { version } from './version.js';
 import { loadModule } from './module.js';
 const traverse = _traverse.default;
 const generate = _generator.default;
@@ -29,7 +30,7 @@ const buildHeader = (entry, modules) => {
     const moduleTree = tree(entry.dependencyTree(), {
         symbol: false
     });
-    let licenseList = 'Licenses\n---------\n';
+    let licenseList = '\nLicenses\n---------\n';
     let licenseFound = false;
     modules.forEach((m) => {
         if (m.license.length === 0)
@@ -37,13 +38,12 @@ const buildHeader = (entry, modules) => {
         licenseList += `* ${m.path}\n${m.license}\n`;
         licenseFound = true;
     });
-    const header = `/*! Making manual changes to this bundled file is not recommended!
+    const header = `/*
+Bundled by minee (${version}) on ${new Date().toISOString()}
 
 Dependencies
 ------------
-${moduleTree}
-${licenseFound ? licenseList : ''}
-Bundled by minee (${new Date().toISOString()}).*/\n\n`;
+${moduleTree}${licenseFound ? licenseList : ''}*/\n\n`;
     return header;
 };
 const renameRequires = (code, to) => {

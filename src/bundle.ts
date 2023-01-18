@@ -5,6 +5,7 @@ import _traverse, { NodePath } from '@babel/traverse'
 import _generator from '@babel/generator'
 import * as parser from '@babel/parser'
 
+import { version } from './version.js'
 import { loadModule, Module, DependencyTree } from './module.js'
 
 // See https://github.com/babel/babel/issues/13855
@@ -38,7 +39,7 @@ const buildHeader = (entry: Module, modules: Module[]): string => {
     symbol: false
   }) as string
 
-  let licenseList = 'Licenses\n---------\n'
+  let licenseList = '\nLicenses\n---------\n'
   let licenseFound = false
   modules.forEach((m) => {
     if (m.license.length === 0) return
@@ -46,13 +47,12 @@ const buildHeader = (entry: Module, modules: Module[]): string => {
     licenseFound = true
   })
 
-  const header = `/*! Making manual changes to this bundled file is not recommended!
+  const header = `/*
+Bundled by minee (${version}) on ${new Date().toISOString()}
 
 Dependencies
 ------------
-${moduleTree}
-${licenseFound ? licenseList : ''}
-Bundled by minee (${new Date().toISOString()}).*/\n\n`
+${moduleTree}${licenseFound ? licenseList : ''}*/\n\n`
 
   return header
 }

@@ -6,10 +6,11 @@ import { Command } from 'commander'
 import * as errors from './errors.js'
 import { bundleModule } from './bundle.js'
 import { loadConfig, Config } from './config.js'
+import { version } from './version.js'
 
 new Command()
   .name('minee')
-  .version('0.0.7')
+  .version(version)
   .description('📦 Earth Engine module bundler.')
   .option('-e, --entry <path>', 'The path to the module entry point, e.g. users/username/repository:module.')
   .option('-d --dest <path>', 'The local file path to write the bundled file.')
@@ -43,7 +44,7 @@ async function runBundler ({ entry, dest, minify, header, keepNames }: Config = 
 
   try {
     const name = entry.split(':')[1].split('/').pop() as string
-    dest = dest === 'undefined' ? dest = `./${name}.bundled.js` : dest as string
+    dest = dest === undefined ? `./${name}.bundled.js` : dest
 
     console.log(`Bundling ${chalk.blue(entry)} to ${chalk.yellow(dest)}...\n`)
   } catch (err) {
