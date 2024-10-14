@@ -18,7 +18,7 @@ test("throws if credentials missing", (t) => {
     [MOCK_COOKIE_DIR]: {},
   });
 
-  t.throws(() => auth.loadGitCredentials(), {
+  t.throws(() => auth.loadGitCredentials(MOCK_COOKIE_DIR), {
     instanceOf: errors.MissingCredentialsError,
   });
 });
