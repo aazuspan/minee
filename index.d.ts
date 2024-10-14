@@ -1,2 +1,2 @@
-declare module "terminal-tree";
-declare module "@babel/core";
+declare module 'terminal-tree';
+declare module '@babel/core';

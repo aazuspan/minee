@@ -32,7 +32,7 @@
     "update-version": "sed -i \"s/version = '\\([^']*\\)'/version = '$npm_package_version'/\" src/version.ts",
     "preversion": "npm run lint && npm run test",
     "postversion": "npm run update-version && npm run build && git add src/version.ts dist/version.js && git commit -m 'Bump version to '$npm_package_version''",
-    "lint": "eslint src --fix",
+    "lint": "eslint . --fix",
     "test": "npm run build && ava",
     "start": "npm run build && node dist/cli.js",
     "docs": "typedoc --out docs src && npm run view-docs",
