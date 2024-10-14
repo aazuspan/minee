@@ -41,6 +41,16 @@ test('gets valid credentials', (t) => {
   t.is(auth.loadGitCredentials(MOCK_COOKIE_DIR), MOCK_KEY)
 })
 
+test('gets valid credentials from .googlesource.com', (t) => {
+  // Credentials may be stored with the key `earthengine.googlesource.com` OR just
+  // `.googlesource.com`. We should be able to parse either.
+  mock({
+    [MOCK_COOKIE_DIR]: { '.gitcookies': MOCK_COOKIE.replace('earthengine', '') }
+  })
+
+  t.is(auth.loadGitCredentials(MOCK_COOKIE_DIR), MOCK_KEY)
+})
+
 /**
  * If you run the Google authentication process multiple times, new keys get concatenated
  * to the end and old keys get deactivated. This test makes sure we always get the most

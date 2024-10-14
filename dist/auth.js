@@ -9,7 +9,7 @@ export const loadGitCredentials = (dir = os.homedir()) => {
     }
     try {
         const lines = fs.readFileSync(cookiePath, 'utf8').split('\n');
-        const credentials = lines.filter((line) => line.startsWith('earthengine.googlesource.com'));
+        const credentials = lines.filter((line) => line.includes('.googlesource.com'));
         const lastCredential = credentials[credentials.length - 1];
         const password = lastCredential.split('=')[1].trim();
         return password;
