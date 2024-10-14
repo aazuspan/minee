@@ -1,8 +1,12 @@
 {
     "extends": "standard-with-typescript",
+    "ignorePatterns": ["dist/", "docs/"],
     "parserOptions": {
         "ecmaVersion": "latest",
         "sourceType": "module",
         "project": "./tsconfig.json"
+    },
+    "rules": {
+        "no-tabs": "off"
     }
 }
